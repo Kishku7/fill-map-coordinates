@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "fillmapcoordinates",
+  "version": "${version}",
+  "name": "Fill Map Coordinates",
+  "description": "Shows the corner coordinates of the area a filled map covers in the item tooltip. Needs to be installed on both the server and the client.",
+  "authors": ["Kishku7"],
+  "contributors": ["manuelgrabowski (author of the original Filled Map Coordinates)"],
+  "contact": {
+    "homepage": "https://modrinth.com/mod/fill-map-coordinates",
+    "sources": "https://github.com/Kishku7/fill-map-coordinates",
+    "issues": "https://github.com/Kishku7/mod_support/issues"
+  },
+  "license": "CC-BY-NC-SA-4.0",
+  "icon": "assets/fillmapcoordinates/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.kishku7.fillmapcoordinates.FillMapCoordinatesFabric"]
+  },
+  "mixins": ["fillmapcoordinates.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "${mcDep}",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,35 @@
+# Canonical mod .gitignore (mod_template master, COG single-source rebuild).
+
+# FULLY-GENERATED cell dirs (CHANGE 1): every cell is 100% materialized from _codegen by
+# scripts\cog-gen.ps1 (build.gradle + settings + gradle.properties + manifest + wrapper + gen\).
+# Nothing here is hand-kept -- delete them and cog-gen + build regenerates from _codegen alone.
+/Fabric/
+/NeoForge/
+/Forge/
+
+# Disposable cog-materialized build output
+gen/
+.gradle/
+build/
+out/
+run/
+dist/
+
+# Python cog-brain bytecode
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Local credential-reading publish/release/stage helpers -- NEVER tracked
+scripts/_publish_*
+scripts/_release_*
+scripts/build-stage.ps1
+
+# Internal dev docs + temp/scratch -- NEVER tracked in published source
+docs/
+*.tmp
+*.bak
+*.orig
+

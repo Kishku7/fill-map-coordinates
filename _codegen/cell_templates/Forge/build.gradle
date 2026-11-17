@@ -1,0 +1,47 @@
+plugins {
+    id 'java'                                      // FG7 does NOT auto-apply java -- declare it.
+    id 'eclipse'
+    id 'net.minecraftforge.gradle' version '7.0.31'
+}
+
+version = "${mod_version}+${mc_line}-forge"
+group = 'com.kishku7.fillmapcoordinates'
+
+base {
+    archivesName = '@MOD_ID@'
+}
+
+// 1.21.11 = mojmap (1.20.6+): run on JDK 21, no renamer, plain jar is the production artifact.
+java.toolchain.languageVersion = JavaLanguageVersion.of(@JDK@)
+
+// FG7: the Minecraft Mavenizer runs at configuration time (first run ~5-6 min, cached after).
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
+
+// D16 single-source: compile ONLY the cog-generated tree (scripts\cog-gen.ps1). No shared_* srcDirs.
+sourceSets.main.java.srcDirs = ['gen/src/main/java']
+sourceSets.main.resources.srcDirs = ['src/main/resources', 'gen/src/main/resources']
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${forge_version}")
+    // Mixin annotations only (compile classpath). NO annotation processor: mojmap runtime, no refmap.
+    compileOnly 'org.spongepowered:mixin:0.8.5'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = @JDK@
+    options.compilerArgs += ['-Xlint:all,-processing']   // D11; -processing = unclaimed-annotation noise only.
+}
+
+// Forge reads the mod version from the jar manifest (mods.toml ${file.jarVersion}); MixinConfigs wires the mixin config.
+jar {
+    manifest {
+        attributes 'Implementation-Version': project.version,
+                   'MixinConfigs': 'fillmapcoordinates.mixins.json'
+    }
+}

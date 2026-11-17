@@ -1,0 +1,9 @@
+{
+  "modrinth_id": "REPLACE_ME",
+  "slug": "fill-map-coordinates",
+  "jar_prefix": "fillmapcoordinates",
+  "fabric_api_dep": "P7dR8mSH",
+  "env": "client_and_server",
+  "quilt_via_fabric_pre26": true,
+  "forge_jar_also_neoforge_below_mc": null
+}

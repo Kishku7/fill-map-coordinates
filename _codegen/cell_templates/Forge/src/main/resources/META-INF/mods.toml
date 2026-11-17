@@ -1,0 +1,30 @@
+modLoader="javafml"
+loaderVersion="[61,)"
+license="CC-BY-NC-SA-4.0"
+issueTrackerURL="https://github.com/Kishku7/mod_support/issues"
+
+[[mods]]
+modId="fillmapcoordinates"
+version="${file.jarVersion}"
+displayName="Fill Map Coordinates"
+displayURL="https://github.com/Kishku7/fill-map-coordinates"
+logoFile="assets/fillmapcoordinates/icon.png"
+authors="Kishku7"
+credits="manuelgrabowski, author of the original Filled Map Coordinates"
+description='''Shows the corner coordinates of the area a filled map covers in the item tooltip. Needs to be installed on both the server and the client.'''
+
+[[mixins]]
+config="fillmapcoordinates.mixins.json"
+
+[[dependencies.fillmapcoordinates]]
+    modId="forge"
+    mandatory=true
+    versionRange="[61,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.fillmapcoordinates]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.21.11,1.22)"
+    ordering="NONE"
+    side="BOTH"
