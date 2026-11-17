@@ -15,6 +15,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MapItem.class)
 public abstract class MapItemMixin {
 
+    //[[[cog
+    // import sys; sys.path.insert(0, codegen); import compat
+    // compat.map_created_hook(cog, ver)
+    //]]]
     @Inject(method = "create", at = @At("RETURN"))
     private static void fmc$afterCreate(ServerLevel level, int originX, int originZ, byte scale,
                                         boolean trackPosition, boolean unlimitedTracking,
@@ -23,6 +27,7 @@ public abstract class MapItemMixin {
             FmcMapData.record(cir.getReturnValue(), level);
         }
     }
+    //[[[end]]]
 
     @Inject(method = "scaleMap", at = @At("TAIL"))
     private static void fmc$afterScale(ItemStack stack, ServerLevel level, CallbackInfo ci) {

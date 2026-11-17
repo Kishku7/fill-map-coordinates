@@ -6,10 +6,12 @@ Fill Map Coordinates is one source for several Minecraft lines and three loaders
     NeoForge  1.21.11 (MDG, JDK 21)                                  26.1 26.2 26.3
     Forge     1.21.11 (FG7, JDK 21)                                  -- Forge never built 26.x
 
-The Java under cog_sources/ is IDENTICAL on every line: MapItem.create / MapItem.scaleMap /
+The Java under cog_sources/ is the same on every line, except ONE seam (see map_created_hook): MapItem.scaleMap /
 Item.appendHoverText / CustomData / MapItemSavedData have the same mojmap names and signatures from
 1.21.11 through 26.4-snapshot-10 (checked against MC-Java for 1.21.11, 26.1.2, 26.2, 26.3, 26.4-s10).
-So the drift lives only here and in matrix.json:
+From 26.3 on, Mojang split explorer maps into their own MapItem item types and moved the saved-data
+setup into MapItem.applyNewSavedData, so the server hook is gated (has_apply_new_saved_data); 26.4 requires
+SerializableArgument command arguments (has_wrapped_command_args). The drift lives here and in matrix.json:
   * ENTRYPOINTS: each loader's @Mod / ModInitializer, emitted below (D15).
   * info_constants(): the loader name + Minecraft line stamped into FmcInfo by a Cog block.
   * version gates (vt/is_26/...): used by cog-gen.ps1 through `python compat.py gate <name> <ver>`.
@@ -123,6 +125,59 @@ def emit(loader, gen_java_dir, ver=None):
 
 
 # ==================================================== shared-code Cog emit ====
+def has_apply_new_saved_data(ver):
+    """26.3 split explorer maps into their own MapItem item types and moved the saved-data setup out of
+    MapItem.create into MapItem.applyNewSavedData(level, stack, ...), which loot functions call on an
+    existing stack. create() calls it too, so hooking it covers every way a map gets its data."""
+    return vt(ver) >= (26, 3)
+
+
+def map_created_hook(cog, ver):
+    """The server hook that records a map's area the moment its saved data is attached."""
+    if has_apply_new_saved_data(ver):
+        cog.outl('@Inject(method = "applyNewSavedData", at = @At("TAIL"))')
+        cog.outl('private static void fmc$afterApply(ServerLevel level, ItemStack map, int originX, int originZ, byte scale,')
+        cog.outl('                                    boolean trackPosition, boolean unlimitedTracking, CallbackInfo ci) {')
+        cog.outl('    if (FmcConfig.isEnabled()) {')
+        cog.outl('        FmcMapData.record(map, level);')
+        cog.outl('    }')
+        cog.outl('}')
+    else:
+        cog.outl('@Inject(method = "create", at = @At("RETURN"))')
+        cog.outl('private static void fmc$afterCreate(ServerLevel level, int originX, int originZ, byte scale,')
+        cog.outl('                                    boolean trackPosition, boolean unlimitedTracking,')
+        cog.outl('                                    CallbackInfoReturnable<ItemStack> cir) {')
+        cog.outl('    if (FmcConfig.isEnabled()) {')
+        cog.outl('        FmcMapData.record(cir.getReturnValue(), level);')
+        cog.outl('    }')
+        cog.outl('}')
+
+
+def has_wrapped_command_args(ver):
+    """26.4 put every command argument type behind SerializableArgument: a bare Brigadier BoolArgumentType in a
+    registered command makes the server fail to load ("Invalid argument type"). Vanilla's own BooleanArgument
+    (net.minecraft.commands.arguments) wraps it with the same bool()/getBool() shape."""
+    return vt(ver) >= (26, 4)
+
+
+def command_bool_import(cog, ver):
+    if has_wrapped_command_args(ver):
+        cog.outl("import net.minecraft.commands.arguments.BooleanArgument;")
+    else:
+        cog.outl("import com.mojang.brigadier.arguments.BoolArgumentType;")
+
+
+def command_bool_helpers(cog, ver):
+    cls = "BooleanArgument" if has_wrapped_command_args(ver) else "BoolArgumentType"
+    cog.outl("private static ArgumentType<Boolean> boolArg() {")
+    cog.outl("    return {0}.bool();".format(cls))
+    cog.outl("}")
+    cog.outl("")
+    cog.outl("private static boolean boolValue(CommandContext<CommandSourceStack> ctx, String name) {")
+    cog.outl("    return {0}.getBool(ctx, name);".format(cls))
+    cog.outl("}")
+
+
 def info_constants(cog, ver, loader):
     """Stamp the loader name and the Minecraft line the cell was generated for."""
     line = ".".join(ver.split("-")[0].split(".")[:2])
